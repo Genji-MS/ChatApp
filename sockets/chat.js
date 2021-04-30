@@ -16,9 +16,15 @@ module.exports = (io, socket, onlineUsers, channels) => {
 
     //triggers index.js socket.emit('new msg')
     socket.on('new msg', (data) => {
+        //Save the new message to the channel.
+        channels[data.channel].push({sender : data.sender, message : data.message});
+  
+        console.log(`🎤 ${data.sender}: ${data.channel}> ${data.message} 🎤`)
         // Send that data back to ALL clients
-        console.log(`🎤 ${data.sender}: ${data.message} 🎤`)
-        io.emit('new msg', data);
+        //io.emit('new msg', data);
+
+        //Emit only to sockets that are in that channel room.
+        io.to(data.channel).emit('new msg', data);
     })
   
     socket.on('get online users', () => {
@@ -45,6 +51,15 @@ module.exports = (io, socket, onlineUsers, channels) => {
         //Inform all clients of the new channel.
         io.emit('new channel', newChannel);
         //Emit to the client that made the new channel, to change their channel to the one they made.
+        socket.emit('user changed channel', {
+        channel : newChannel,
+        messages : channels[newChannel]
+        });
+    });
+
+    //Have the socket join the room of the channel
+    socket.on('user changed channel', (newChannel) => {
+        socket.join(newChannel);
         socket.emit('user changed channel', {
         channel : newChannel,
         messages : channels[newChannel]
