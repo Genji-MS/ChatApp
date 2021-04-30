@@ -8,6 +8,7 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 //We'll store our online users here
 let onlineUsers = {};
+
 io.on("connection", (socket) => {
   // This file will be read on new socket connections, make sure to pass in onlineUsers
   require('./sockets/chat.js')(io, socket, onlineUsers);
